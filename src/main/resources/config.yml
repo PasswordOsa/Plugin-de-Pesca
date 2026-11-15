@@ -1,0 +1,177 @@
+# ===================== PescaPlus =====================
+autoguardado-minutos: 5
+
+nivel:
+  maximo: 50
+  xp-base: 100            # XP para pasar del nivel L al siguiente = xp-base * L^exponente
+  exponente: 1.5
+  bonus-venta-por-nivel: 0.01     # +1% al precio de venta por nivel
+  bonus-rareza-por-nivel: 0.04    # cuanto mas nivel, mas probabilidad de peces raros
+
+# Probabilidad (0.0 - 1.0) de dejar el loot normal de Minecraft (tesoros, basura, peces vanilla)
+loot-vanilla-chance: 0.0
+
+frescura:
+  aviso-porcentaje: 25     # avisa cuando queda este % de vida util
+  refresco-segundos: 30    # cada cuanto se actualiza el estado de los peces en inventarios
+
+# Orden = de comun a legendario (el orden afecta la probabilidad al subir de nivel)
+rarezas:
+  "Común": "&7"
+  "Poco común": "&a"
+  "Raro": "&9"
+  "Épico": "&5"
+  "Legendario": "&6"
+
+peces:
+  sardina:
+    nombre: "Sardina"
+    material: COD
+    rareza: "Común"
+    nivel-minimo: 1
+    probabilidad: 40
+    precio: 4.0
+    xp: 4
+    peso-min: 0.1
+    peso-max: 0.4
+    vida-minutos: 30
+  carpa:
+    nombre: "Carpa"
+    material: COD
+    rareza: "Común"
+    nivel-minimo: 1
+    probabilidad: 30
+    precio: 7.0
+    xp: 6
+    peso-min: 0.8
+    peso-max: 4.0
+    vida-minutos: 30
+  trucha:
+    nombre: "Trucha"
+    material: SALMON
+    rareza: "Poco común"
+    nivel-minimo: 3
+    probabilidad: 20
+    precio: 14.0
+    xp: 10
+    peso-min: 0.5
+    peso-max: 2.5
+    vida-minutos: 45
+  salmon:
+    nombre: "Salmón"
+    material: SALMON
+    rareza: "Poco común"
+    nivel-minimo: 5
+    probabilidad: 15
+    precio: 20.0
+    xp: 14
+    peso-min: 2.0
+    peso-max: 6.0
+    vida-minutos: 45
+  pez-payaso:
+    nombre: "Pez Payaso"
+    material: TROPICAL_FISH
+    rareza: "Poco común"
+    nivel-minimo: 8
+    probabilidad: 12
+    precio: 32.0
+    xp: 20
+    peso-min: 0.1
+    peso-max: 0.3
+    vida-minutos: 60
+  pez-globo:
+    nombre: "Pez Globo"
+    material: PUFFERFISH
+    rareza: "Raro"
+    nivel-minimo: 12
+    probabilidad: 8
+    precio: 55.0
+    xp: 30
+    peso-min: 0.3
+    peso-max: 1.5
+    vida-minutos: 60
+  atun:
+    nombre: "Atún"
+    material: COD
+    rareza: "Raro"
+    nivel-minimo: 15
+    probabilidad: 7
+    precio: 80.0
+    xp: 40
+    peso-min: 10.0
+    peso-max: 60.0
+    vida-minutos: 75
+  pez-espada:
+    nombre: "Pez Espada"
+    material: SALMON
+    rareza: "Raro"
+    nivel-minimo: 20
+    probabilidad: 5
+    precio: 130.0
+    xp: 55
+    peso-min: 40.0
+    peso-max: 120.0
+    vida-minutos: 90
+  pez-luna:
+    nombre: "Pez Luna"
+    material: TROPICAL_FISH
+    rareza: "Épico"
+    nivel-minimo: 25
+    probabilidad: 3
+    precio: 260.0
+    xp: 85
+    peso-min: 100.0
+    peso-max: 500.0
+    vida-minutos: 120
+  esturion:
+    nombre: "Esturión"
+    material: COD
+    rareza: "Épico"
+    nivel-minimo: 30
+    probabilidad: 2.5
+    precio: 420.0
+    xp: 120
+    peso-min: 50.0
+    peso-max: 300.0
+    vida-minutos: 120
+  celacanto:
+    nombre: "Celacanto"
+    material: PUFFERFISH
+    rareza: "Legendario"
+    nivel-minimo: 40
+    probabilidad: 1
+    precio: 900.0
+    xp: 250
+    peso-min: 30.0
+    peso-max: 90.0
+    vida-minutos: 180
+  pez-dorado:
+    nombre: "Pez Dorado"
+    material: TROPICAL_FISH
+    rareza: "Legendario"
+    nivel-minimo: 45
+    probabilidad: 0.5
+    precio: 1500.0
+    xp: 400
+    peso-min: 0.5
+    peso-max: 3.0
+    vida-minutos: 240
+
+heladera:
+  receta: true   # receta: 7 lingotes de hierro + barril + hielo compacto (requiere reiniciar)
+
+mensajes:
+  prefijo: "&b[Pesca] &r"
+  atrapado: "&aAtrapaste: {color}{pez} &7({peso} kg) &8| &e+{xp} XP"
+  nuevo-pez: "&d¡Nueva especie para tu colección: &f{pez}&d!"
+  nivel-subio: "&6¡Subiste al nivel &e{nivel}&6!"
+  desbloqueo: "&7Peces desbloqueados: &f{peces}"
+  vendido: "&aVendiste &f{cantidad} &apeces por &e{dinero}&a."
+  nada-para-vender: "&cNo tienes peces frescos para vender."
+  podridos-omitidos: "&c{cantidad} peces podridos no se pueden vender. &7Usa /pesca limpiar o guárdalos antes en una heladera."
+  limpiado: "&7Tiraste &f{cantidad} &7peces podridos."
+  sin-permiso: "&cNo tienes permiso."
+  solo-jugadores: "&cSolo jugadores."
+  recargado: "&aConfiguración recargada."
+  heladera-dada: "&aHeladera entregada a &f{jugador}&a."
+  jugador-no-encontrado: "&cJugador no encontrado."
