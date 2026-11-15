@@ -12,6 +12,19 @@ public final class InternalEco implements EconomyBridge {
     }
 
     @Override
+    public double balance(Player player, PlayerData data) {
+        return data.balance;
+    }
+
+    @Override
+    public boolean withdraw(Player player, PlayerData data, double amount) {
+        if (data.balance < amount) return false;
+        data.balance -= amount;
+        data.dirty = true;
+        return true;
+    }
+
+    @Override
     public String format(double amount) {
         return String.format(Locale.US, "$%,.2f", amount);
     }

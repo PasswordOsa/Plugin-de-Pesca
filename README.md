@@ -1,86 +1,76 @@
-# PescaPlus
+# 🎣 PescaPlus 2.0 — Simulador de pesca
 
-Plugin de pesca para Paper/Spigot: peces coleccionables con peso y rareza, niveles, venta,
-y peces que se dañan si no se guardan en una heladera.
+Plugin de pesca para Paper/Spigot pensado como un **simulador**: cada lanzamiento depende del
+lugar, la hora y el clima; hay un minijuego de tensión, cañas y carnadas, mercado con oferta y
+demanda, misiones, torneos y peces que se pudren si no los conservas.
 
 ## Instalación
-1. Compila el plugin (ver abajo) o descarga el `.jar` desde GitHub Actions.
-2. Copia `PescaPlus-1.0.0.jar` a la carpeta `plugins/` del servidor.
-3. Reinicia el servidor. Vault es opcional (si no está, se usa un saldo interno).
+1. Descarga el `.jar` desde **Releases** (o compílalo, ver abajo).
+2. Cópialo a `plugins/` y reinicia el servidor. Vault es opcional (sin Vault usa un saldo interno).
 
 ### Compilar
-Requiere JDK 21+ y Maven:
+Requiere JDK 21+ y Maven: `mvn clean package` → `target/PescaPlus-2.0.0.jar`.
+En GitHub se compila solo con Actions y se publica en Releases.
 
-    mvn clean package
+## Cómo se juega
+1. **Lanza la caña.** Dónde pescas importa: la **zona** (océano, río, pantano, frío, jungla…),
+   el **día/noche**, la **lluvia** y hasta la **luna llena** cambian qué peces pueden salir.
+2. **Pica un pez.** Aparece una barra en la action bar y un aviso de lo que sientes
+   (*ligero… ¡ENORME!*). Recoge la caña cuando el cursor esté en la zona verde:
+   - **Zona amarilla = captura PERFECTA** (pez más pesado, +50% XP, cuenta para misiones).
+   - **Zona verde = captura buena.**
+   - **Fuera = se escapa.** Cuanto más raro el pez, más rápido el cursor y más pequeña la zona.
+3. **Gestiona tus peces.** Se pudren con el tiempo: guárdalos en una **heladera** o véndelos ya.
+4. **Vende en el mercado.** Vender muchos peces de una especie baja su precio; se recupera con
+   el tiempo. Cada cierto rato una especie entra en **tendencia** (+30%).
+5. **Mejora tu equipo.** Cañas (velocidad, suerte, control) y carnadas en la tienda.
+6. **Sube de nivel**, completa **misiones diarias**, entra a **torneos** y bate los
+   **récords del servidor**.
 
-El `.jar` queda en `target/PescaPlus-1.0.0.jar`. En GitHub, la compilación se hace sola
-en la pestaña **Actions** (el `.jar` se descarga dentro de un zip, en *Artifacts*).
+## Menús
+Todo se maneja desde `/pesca`: perfil con condiciones de pesca en tu ubicación, colección
+paginada con filtro por rareza, mercado en vivo, tienda, misiones y estado del torneo.
 
 ## Comandos
 | Comando | Descripción |
 |---|---|
-| `/pesca info` | Tu nivel, XP y estadísticas |
-| `/pesca coleccion` | Menú con las especies descubiertas |
-| `/pesca vender` | Vende todos los peces frescos del inventario |
-| `/pesca vender mano` | Vende solo el pez que llevas en la mano |
+| `/pesca` | Menú principal |
+| `/pesca coleccion` · `mercado` · `tienda` · `misiones` | Acceso directo a cada menú |
+| `/pesca info` | Estadísticas en el chat |
+| `/pesca vender [mano]` | Vende tus peces frescos |
 | `/pesca limpiar` | Tira los peces podridos |
+| `/pesca torneo` | Estado del torneo actual |
+| `/pesca torneo iniciar [min]` · `parar` | Torneos (`pesca.admin`) |
+| `/pesca heladera [jugador]` | Da una heladera (`pesca.admin`) |
+| `/pesca dar <jugador> <cana\|carnada> <id> [cant]` | Da cañas o carnadas (`pesca.admin`) |
 | `/pesca reload` | Recarga la configuración (`pesca.admin`) |
-| `/pesca heladera [jugador]` | Entrega una heladera (`pesca.admin`) |
 
-Permisos: `pesca.use` (todos por defecto) y `pesca.admin` (solo operadores).
+Permisos: `pesca.use` (todos) y `pesca.admin` (operadores).
 
-## Cómo funciona
+## Sistemas
+- **Cañas:** velocidad (pica antes), suerte (más rarezas), control (zona verde más grande).
+  Sus bonus solo funcionan si tu nivel alcanza el requerido.
+- **Carnadas:** van en la mano secundaria; se gasta una por lanzamiento.
+- **Heladera:** barril especial (7 hierro + barril + hielo compacto). Cerrada, congela el tiempo
+  de los peces. Las tolvas no pueden usarla y las explosiones no la rompen.
+- **Mercado dinámico:** saturación por venta, recuperación por minuto y especie en tendencia.
+- **Misiones diarias:** 3 por día, iguales para todos, con dinero y XP.
+- **Torneos:** barra de jefe con el líder; gana quien pesque más kilos. Pueden ser automáticos.
+- **Anuncios y récords:** las capturas épicas/legendarias se anuncian; los récords de peso
+  por especie se guardan en `records.yml`.
 
-### 1. Pescar
-Cuando pescas un pez normal de Minecraft (bacalao, salmón, pez tropical o pez globo), el
-plugin lo cambia por uno suyo:
-- Elige la especie según tu **nivel**: solo salen peces cuyo nivel mínimo ya alcanzaste.
-- Le da un **peso al azar** dentro del rango de esa especie.
-- Te da **XP** de pesca y lo anota en tu colección.
+## Rendimiento
+- Tablas de probabilidad cacheadas por contexto: elegir un pez es una búsqueda binaria.
+- Sin tareas por pez ni por tick: la frescura se calcula de forma perezosa.
+- Solo hay una tarea corta (cada 2 ticks) mientras un pez está picando.
+- Datos en caché; guardado asíncrono en un único hilo con escritura atómica.
+- Los menús resuelven clics por slot y se redibujan sin cerrarse.
 
-Los tesoros y la basura de la pesca normal no se tocan.
-
-### 2. Niveles
-- Cada pez da XP, y subir de nivel cuesta cada vez más.
-- Al subir se desbloquean peces nuevos, que dan más dinero.
-- Cuanto más nivel tienes, más probable es que salgan los peces raros.
-- Cada nivel aumenta un 1% el precio de venta.
-
-Todo se ajusta en `config.yml`.
-
-### 3. Valor y venta
-El precio depende de la especie y del peso: un pez más pesado que el promedio de su especie
-vale más. El dinero va a Vault si está instalado; si no, a un saldo interno del plugin.
-
-### 4. Peces que se dañan
-Cada pez nace con una **hora de caducidad** (por ejemplo, 30 minutos una sardina y 4 horas
-un pez dorado). Tiene tres estados:
-- **Fresco**.
-- **Se está dañando**: queda poco tiempo; se avisa en la descripción del item.
-- **Podrido**: se convierte en carne podrida y **ya no se puede vender**. Solo se puede tirar
-  con `/pesca limpiar`.
-
-El plugin no lleva un reloj por cada pez: guarda la hora de caducidad dentro del item y cada
-30 segundos actualiza el estado de lo que llevas en el inventario.
-
-### 5. La heladera
-Es un barril especial: se craftea con 7 lingotes de hierro, un barril y hielo compacto, o se
-entrega con `/pesca heladera`.
-- Al **cerrarla**, los peces de adentro se congelan y dejan de envejecer.
-- Al **abrirla**, se descongelan y conservan el tiempo que les quedaba.
-- Los peces ya podridos no se pueden salvar.
-- Las tolvas no pueden meter ni sacar items de ella, y las explosiones no la rompen.
-- Si se rompe, el barril conserva su marca de heladera.
-
-### 6. Colección
-`/pesca coleccion` muestra todas las especies. Las no pescadas aparecen como "???"; las
-descubiertas muestran cuántas llevas y tu récord de peso.
-
-### 7. Guardado de datos
-El progreso se guarda en un archivo por jugador en `plugins/PescaPlus/data/`. Se carga al
-entrar, se guarda cada 5 minutos y al salir, siempre en segundo plano para no afectar el
-rendimiento del servidor.
+## Configuración
+Todo está en `config.yml`: peces (zonas, horario, clima, rareza, precio…), cañas, carnadas,
+dificultad del minijuego, mercado, misiones, torneos y todos los mensajes.
 
 ## Limitaciones
 - No es compatible con Folia.
-- Los cambios de `heladera.receta` en la config requieren reiniciar el servidor.
+- Los premios del torneo solo se entregan a quienes estén conectados al terminar.
+- Los cambios de `heladera.receta` requieren reiniciar el servidor.

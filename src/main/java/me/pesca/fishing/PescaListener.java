@@ -6,7 +6,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Container;
 import org.bukkit.block.TileState;
 import org.bukkit.entity.Item;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -15,24 +14,23 @@ import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.inventory.*;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
-import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.UUID;
 
+/** Datos de jugador, menus y heladera. (La pesca esta en FishingListener.) */
 public final class PescaListener implements Listener {
-    private static final Set<Material> VANILLA_FISH =
-            EnumSet.of(Material.COD, Material.SALMON, Material.TROPICAL_FISH, Material.PUFFERFISH);
-
     private final PescaPlugin plugin;
     private final FishItems items;
 
@@ -41,7 +39,7 @@ public final class PescaListener implements Listener {
         this.items = plugin.items();
     }
 
-    // ------------------------------------------------------------ datos de jugador
+    // ------------------------------------------------------------ jugador
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPreLogin(AsyncPlayerPreLoginEvent e) {
@@ -53,45 +51,28 @@ public final class PescaListener implements Listener {
     public void onJoin(PlayerJoinEvent e) {
         plugin.data().get(e.getPlayer().getUniqueId());
         plugin.refreshInventory(e.getPlayer());
+        plugin.tournament().join(e.getPlayer());
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
-        plugin.guiViewers().remove(e.getPlayer().getUniqueId());
-        plugin.data().unload(e.getPlayer().getUniqueId());
+        UUID id = e.getPlayer().getUniqueId();
+        plugin.menus().remove(id);
+        plugin.fishing().cleanup(id);
+        plugin.data().unload(id);
     }
 
-    // ------------------------------------------------------------ pesca
+    // ------------------------------------------------------------ menus
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onFish(PlayerFishEvent e) {
-        if (e.getState() != PlayerFishEvent.State.CAUGHT_FISH) return;
-        if (!(e.getCaught() instanceof Item drop)) return;
-        if (!VANILLA_FISH.contains(drop.getItemStack().getType())) return; // deja tesoros y basura
-        Player p = e.getPlayer();
-        if (!p.hasPermission("pesca.use")) return;
+    @EventHandler
+    public void onMenuClick(InventoryClickEvent e) {
+        Menu m = plugin.menus().get(e.getWhoClicked().getUniqueId());
+        if (m != null) m.handle(e);
+    }
 
-        ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        if (rnd.nextDouble() < plugin.vanillaLootChance()) return;
-
-        PlayerData d = plugin.data().get(p.getUniqueId());
-        FishType t = plugin.registry().pick(d.level, rnd);
-        if (t == null) return;
-
-        double w = t.minWeight() + rnd.nextDouble() * (t.maxWeight() - t.minWeight());
-        w = Math.round(w * 100.0) / 100.0;
-        drop.setItemStack(items.create(t, w, p.getName()));
-
-        int count = d.caught.merge(t.id(), 1, Integer::sum);
-        Double rec = d.record.get(t.id());
-        if (rec == null || w > rec) d.record.put(t.id(), w);
-        d.totalCaught++;
-        d.dirty = true;
-
-        p.sendMessage(plugin.msg("atrapado", "color", t.color(), "pez", t.name(),
-                "peso", String.format(Locale.US, "%.2f", w), "xp", t.xp()));
-        if (count == 1) p.sendMessage(plugin.msg("nuevo-pez", "pez", t.name()));
-        plugin.addXp(p, d, t.xp());
+    @EventHandler
+    public void onMenuDrag(InventoryDragEvent e) {
+        if (plugin.menus().containsKey(e.getWhoClicked().getUniqueId())) e.setCancelled(true);
     }
 
     // ------------------------------------------------------------ heladera
@@ -141,12 +122,11 @@ public final class PescaListener implements Listener {
 
     @EventHandler
     public void onClose(InventoryCloseEvent e) {
-        plugin.guiViewers().remove(e.getPlayer().getUniqueId());
+        plugin.menus().remove(e.getPlayer().getUniqueId());
         Inventory inv = e.getInventory();
         if (isFridgeInv(inv)) freezeAll(inv);
     }
 
-    /** Antes de romper: descongelar el contenido para que no quede congelado fuera de la heladera. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent e) {
         Block b = e.getBlock();
@@ -154,7 +134,6 @@ public final class PescaListener implements Listener {
         if (b.getState() instanceof Container c) thawAll(c.getInventory());
     }
 
-    /** El barril que se dropea conserva la marca de heladera. */
     @EventHandler(ignoreCancelled = true)
     public void onDrop(BlockDropItemEvent e) {
         if (!(e.getBlockState() instanceof TileState ts)) return;
@@ -164,7 +143,6 @@ public final class PescaListener implements Listener {
         }
     }
 
-    /** Las heladeras son inmunes a explosiones (evita perder la marca y el contenido). */
     @EventHandler(ignoreCancelled = true)
     public void onEntityExplode(EntityExplodeEvent e) {
         e.blockList().removeIf(this::isFridge);
@@ -175,7 +153,6 @@ public final class PescaListener implements Listener {
         e.blockList().removeIf(this::isFridge);
     }
 
-    /** Sin tolvas: evita sacar/meter peces sin pasar por apertura/cierre. */
     @EventHandler(ignoreCancelled = true)
     public void onHopper(InventoryMoveItemEvent e) {
         Inventory src = e.getSource(), dst = e.getDestination();
@@ -183,17 +160,5 @@ public final class PescaListener implements Listener {
                 || (dst.getType() == InventoryType.BARREL && isFridgeInv(dst))) {
             e.setCancelled(true);
         }
-    }
-
-    // ------------------------------------------------------------ GUI coleccion
-
-    @EventHandler
-    public void onGuiClick(InventoryClickEvent e) {
-        if (plugin.guiViewers().contains(e.getWhoClicked().getUniqueId())) e.setCancelled(true);
-    }
-
-    @EventHandler
-    public void onGuiDrag(InventoryDragEvent e) {
-        if (plugin.guiViewers().contains(e.getWhoClicked().getUniqueId())) e.setCancelled(true);
     }
 }

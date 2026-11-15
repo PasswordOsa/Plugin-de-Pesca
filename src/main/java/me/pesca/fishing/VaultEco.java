@@ -24,6 +24,17 @@ public final class VaultEco implements EconomyBridge {
     }
 
     @Override
+    public double balance(Player player, PlayerData data) {
+        return eco.getBalance(player);
+    }
+
+    @Override
+    public boolean withdraw(Player player, PlayerData data, double amount) {
+        if (!eco.has(player, amount)) return false;
+        return eco.withdrawPlayer(player, amount).transactionSuccess();
+    }
+
+    @Override
     public String format(double amount) {
         return eco.format(amount);
     }

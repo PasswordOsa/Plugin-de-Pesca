@@ -1,31 +1,50 @@
-# ===================== PescaPlus =====================
+# ======================================================================
+#  PescaPlus 2.0  -  Simulador de pesca
+# ======================================================================
 autoguardado-minutos: 5
 
 nivel:
   maximo: 50
-  xp-base: 100            # XP para pasar del nivel L al siguiente = xp-base * L^exponente
+  xp-base: 100                    # XP para pasar de nivel L = xp-base * L^exponente
   exponente: 1.5
-  bonus-venta-por-nivel: 0.01     # +1% al precio de venta por nivel
-  bonus-rareza-por-nivel: 0.04    # cuanto mas nivel, mas probabilidad de peces raros
+  bonus-venta-por-nivel: 0.01     # +1% de precio por nivel
+  bonus-rareza-por-nivel: 0.04    # mas nivel = mas probabilidad de peces raros
 
-# Probabilidad (0.0 - 1.0) de dejar el loot normal de Minecraft (tesoros, basura, peces vanilla)
-loot-vanilla-chance: 0.0
+loot-vanilla-chance: 0.0          # probabilidad de dejar el loot normal de Minecraft
+
+anuncios:
+  rank-minimo: 3                  # desde que rareza (0=Comun ... 4=Legendario) se anuncia al servidor
+
+# Minijuego de tension: al picar un pez aparece una barra en la action bar.
+# Hay que recoger la caña cuando el cursor esta dentro de la zona verde.
+minijuego:
+  ancho: 27
+  zona-base: 9                    # tamaño de la zona (peces comunes). Baja 1 por rareza
+  velocidad-base: 10.0            # celdas por segundo
+  velocidad-por-rareza: 2.5
+
+espera:                           # ticks que tarda en picar (vanilla 100-600)
+  minimo: 100
+  maximo: 600
+  lluvia-factor: 0.8              # con lluvia pican antes
 
 frescura:
-  aviso-porcentaje: 25     # avisa cuando queda este % de vida util
-  refresco-segundos: 30    # cada cuanto se actualiza el estado de los peces en inventarios
+  aviso-porcentaje: 25
+  refresco-segundos: 30
 
-# Orden = de comun a legendario (el orden afecta la probabilidad al subir de nivel)
-rarezas:
+rarezas:                          # orden = de comun a legendario
   "Común": "&7"
   "Poco común": "&a"
   "Raro": "&9"
   "Épico": "&5"
   "Legendario": "&6"
 
+# zonas posibles: OCEANO, OCEANO_PROFUNDO, RIO, PANTANO, FRIO, JUNGLA, OTRO
+# horario: CUALQUIERA, DIA, NOCHE      clima: CUALQUIERA, LLUVIA, DESPEJADO
 peces:
   sardina:
     nombre: "Sardina"
+    descripcion: "Pequeña y plateada. Vive en enormes cardúmenes."
     material: COD
     rareza: "Común"
     nivel-minimo: 1
@@ -35,8 +54,10 @@ peces:
     peso-min: 0.1
     peso-max: 0.4
     vida-minutos: 30
+    zonas: [OCEANO, OTRO]
   carpa:
     nombre: "Carpa"
+    descripcion: "Tranquila y resistente, le gustan las aguas quietas."
     material: COD
     rareza: "Común"
     nivel-minimo: 1
@@ -46,8 +67,10 @@ peces:
     peso-min: 0.8
     peso-max: 4.0
     vida-minutos: 30
+    zonas: [RIO, PANTANO, OTRO]
   trucha:
     nombre: "Trucha"
+    descripcion: "Nada contra la corriente de ríos fríos y limpios."
     material: SALMON
     rareza: "Poco común"
     nivel-minimo: 3
@@ -57,8 +80,10 @@ peces:
     peso-min: 0.5
     peso-max: 2.5
     vida-minutos: 45
+    zonas: [RIO, FRIO]
   salmon:
     nombre: "Salmón"
+    descripcion: "Viaja miles de bloques para volver a donde nació."
     material: SALMON
     rareza: "Poco común"
     nivel-minimo: 5
@@ -68,8 +93,24 @@ peces:
     peso-min: 2.0
     peso-max: 6.0
     vida-minutos: 45
+    zonas: [RIO, FRIO, OCEANO]
+  bagre:
+    nombre: "Bagre"
+    descripcion: "Pez de fondo con bigotes. Sale a cazar de noche."
+    material: COD
+    rareza: "Poco común"
+    nivel-minimo: 6
+    probabilidad: 14
+    precio: 26.0
+    xp: 16
+    peso-min: 1.5
+    peso-max: 9.0
+    vida-minutos: 45
+    zonas: [PANTANO, RIO]
+    horario: NOCHE
   pez-payaso:
     nombre: "Pez Payaso"
+    descripcion: "Colorido y juguetón. Prefiere aguas cálidas y de día."
     material: TROPICAL_FISH
     rareza: "Poco común"
     nivel-minimo: 8
@@ -79,8 +120,11 @@ peces:
     peso-min: 0.1
     peso-max: 0.3
     vida-minutos: 60
+    zonas: [OCEANO, JUNGLA]
+    horario: DIA
   pez-globo:
     nombre: "Pez Globo"
+    descripcion: "Se infla cuando se asusta. ¡Con cuidado!"
     material: PUFFERFISH
     rareza: "Raro"
     nivel-minimo: 12
@@ -90,8 +134,10 @@ peces:
     peso-min: 0.3
     peso-max: 1.5
     vida-minutos: 60
+    zonas: [OCEANO, JUNGLA]
   atun:
     nombre: "Atún"
+    descripcion: "Rápido y fuerte. Recorre el océano abierto."
     material: COD
     rareza: "Raro"
     nivel-minimo: 15
@@ -101,8 +147,26 @@ peces:
     peso-min: 10.0
     peso-max: 60.0
     vida-minutos: 75
+    zonas: [OCEANO, OCEANO_PROFUNDO]
+    horario: DIA
+  anguila:
+    nombre: "Anguila Eléctrica"
+    descripcion: "Aparece en las noches de tormenta y da calambre."
+    material: SALMON
+    rareza: "Raro"
+    nivel-minimo: 18
+    probabilidad: 6
+    precio: 110.0
+    xp: 48
+    peso-min: 2.0
+    peso-max: 20.0
+    vida-minutos: 75
+    zonas: [PANTANO, JUNGLA, RIO]
+    horario: NOCHE
+    clima: LLUVIA
   pez-espada:
     nombre: "Pez Espada"
+    descripcion: "El rey del océano profundo. Lucha hasta el final."
     material: SALMON
     rareza: "Raro"
     nivel-minimo: 20
@@ -112,8 +176,10 @@ peces:
     peso-min: 40.0
     peso-max: 120.0
     vida-minutos: 90
+    zonas: [OCEANO_PROFUNDO]
   pez-luna:
     nombre: "Pez Luna"
+    descripcion: "Gigante y misterioso. Solo sube a la superficie de noche."
     material: TROPICAL_FISH
     rareza: "Épico"
     nivel-minimo: 25
@@ -123,8 +189,11 @@ peces:
     peso-min: 100.0
     peso-max: 500.0
     vida-minutos: 120
+    zonas: [OCEANO_PROFUNDO, OCEANO]
+    horario: NOCHE
   esturion:
     nombre: "Esturión"
+    descripcion: "Un fósil viviente. Sus huevas valen oro."
     material: COD
     rareza: "Épico"
     nivel-minimo: 30
@@ -134,8 +203,10 @@ peces:
     peso-min: 50.0
     peso-max: 300.0
     vida-minutos: 120
+    zonas: [RIO, FRIO]
   celacanto:
     nombre: "Celacanto"
+    descripcion: "Se creía extinto hace millones de años. Pura leyenda."
     material: PUFFERFISH
     rareza: "Legendario"
     nivel-minimo: 40
@@ -145,8 +216,11 @@ peces:
     peso-min: 30.0
     peso-max: 90.0
     vida-minutos: 180
+    zonas: [OCEANO_PROFUNDO]
+    horario: NOCHE
   pez-dorado:
     nombre: "Pez Dorado"
+    descripcion: "Dicen que concede deseos. Solo sale en días despejados."
     material: TROPICAL_FISH
     rareza: "Legendario"
     nivel-minimo: 45
@@ -156,22 +230,170 @@ peces:
     peso-min: 0.5
     peso-max: 3.0
     vida-minutos: 240
+    horario: DIA
+    clima: DESPEJADO
+
+# Cañas: se compran en la tienda. Sus bonus solo funcionan si tu nivel alcanza.
+#  velocidad = % menos espera | suerte = mas rarezas | control = zona verde mas grande
+canas:
+  bambu:
+    nombre: "Caña de Bambú"
+    color: "&a"
+    nivel: 1
+    precio: 300
+    velocidad: 0.10
+    suerte: 0
+    control: 0
+  reforzada:
+    nombre: "Caña Reforzada"
+    color: "&9"
+    nivel: 8
+    precio: 1800
+    velocidad: 0.20
+    suerte: 1
+    control: 1
+  profesional:
+    nombre: "Caña Profesional"
+    color: "&5"
+    nivel: 16
+    precio: 8000
+    velocidad: 0.30
+    suerte: 2
+    control: 2
+  maestra:
+    nombre: "Caña Maestra"
+    color: "&6"
+    nivel: 28
+    precio: 35000
+    velocidad: 0.40
+    suerte: 4
+    control: 3
+  legendaria:
+    nombre: "Caña Legendaria"
+    color: "&c"
+    nivel: 40
+    precio: 150000
+    velocidad: 0.55
+    suerte: 6
+    control: 4
+
+# Carnadas: se ponen en la mano secundaria y se gasta una por lanzamiento.
+carnadas:
+  gusano:
+    nombre: "Gusano"
+    material: BEETROOT_SEEDS
+    precio: 40
+    paquete: 16
+    velocidad: 0.15
+    suerte: 0
+    control: 0
+  camaron:
+    nombre: "Camarón"
+    material: ORANGE_DYE
+    precio: 140
+    paquete: 16
+    velocidad: 0.05
+    suerte: 2
+    control: 0
+  cebo-brillante:
+    nombre: "Cebo Brillante"
+    material: GLOWSTONE_DUST
+    precio: 450
+    paquete: 16
+    velocidad: 0.10
+    suerte: 4
+    control: 1
+
+# Mercado dinamico: vender muchos peces de la misma especie baja su precio.
+mercado:
+  saturacion-por-pez: 0.012
+  recuperacion-por-minuto: 0.01
+  minimo: 0.5
+  tendencia-bonus: 1.3
+  tendencia-minutos: 60
+
+# Misiones diarias (se eligen 3 al dia). tipo: cualquiera | rareza | especie | perfecta
+misiones:
+  por-dia: 3
+  pool:
+    pescar-10:
+      desc: "Pesca 10 peces"
+      tipo: cualquiera
+      cantidad: 10
+      dinero: 150
+      xp: 40
+    pescar-25:
+      desc: "Pesca 25 peces"
+      tipo: cualquiera
+      cantidad: 25
+      dinero: 400
+      xp: 100
+    perfectas-3:
+      desc: "Logra 3 capturas perfectas"
+      tipo: perfecta
+      cantidad: 3
+      dinero: 300
+      xp: 80
+    poco-comun-5:
+      desc: "Pesca 5 peces Poco comunes"
+      tipo: rareza
+      parametro: "Poco común"
+      cantidad: 5
+      dinero: 350
+      xp: 90
+    raro-2:
+      desc: "Pesca 2 peces Raros"
+      tipo: rareza
+      parametro: "Raro"
+      cantidad: 2
+      dinero: 600
+      xp: 150
+    carpas-6:
+      desc: "Pesca 6 Carpas"
+      tipo: especie
+      parametro: carpa
+      cantidad: 6
+      dinero: 200
+      xp: 50
+
+torneo:
+  duracion-minutos: 10
+  automatico-cada-minutos: 0      # 0 = desactivado. Ej: 60 = un torneo cada hora
+  premios: [1500, 800, 400]       # dinero para 1º, 2º y 3º (solo a quienes esten conectados)
 
 heladera:
-  receta: true   # receta: 7 lingotes de hierro + barril + hielo compacto (requiere reiniciar)
+  receta: true
 
 mensajes:
   prefijo: "&b[Pesca] &r"
-  atrapado: "&aAtrapaste: {color}{pez} &7({peso} kg) &8| &e+{xp} XP"
+  atrapado: "&aAtrapaste: {color}{pez} &7({peso} kg){calidad} &8| &e+{xp} XP"
+  calidad-perfecta: " &e★ PERFECTA"
+  se-escapo: "&c¡Se te escapó! &7Recoge cuando el cursor esté en la zona verde."
+  fallo-pez: "&7El pez se soltó del anzuelo..."
   nuevo-pez: "&d¡Nueva especie para tu colección: &f{pez}&d!"
   nivel-subio: "&6¡Subiste al nivel &e{nivel}&6!"
   desbloqueo: "&7Peces desbloqueados: &f{peces}"
+  anuncio-captura: "&6★ &f{jugador} &7pescó un {color}{pez} &7de &f{peso} kg&7!"
+  record-servidor: "&e¡{jugador} batió el récord del servidor de {color}{pez}&e con &f{peso} kg&e! &7(antes: {antes} kg de {antes_jugador})"
+  cana-nivel: "&cTu nivel no alcanza para esta caña (necesitas nivel {nivel}). Usas estadísticas básicas."
   vendido: "&aVendiste &f{cantidad} &apeces por &e{dinero}&a."
   nada-para-vender: "&cNo tienes peces frescos para vender."
-  podridos-omitidos: "&c{cantidad} peces podridos no se pueden vender. &7Usa /pesca limpiar o guárdalos antes en una heladera."
+  podridos-omitidos: "&c{cantidad} peces podridos no se pueden vender. &7Usa /pesca limpiar o guárdalos en una heladera."
   limpiado: "&7Tiraste &f{cantidad} &7peces podridos."
+  comprado: "&aComprado: &f{item} &apor &e{precio}&a."
+  sin-dinero: "&cNo tienes suficiente dinero."
+  nivel-insuficiente: "&cNecesitas nivel {nivel} para esto."
+  mision-completada: "&a¡Misión completada! &7Reclama tu premio en &f/pesca &7→ Misiones."
+  mision-cobrada: "&aPremio reclamado: &e{dinero} &a+ &e{xp} XP"
+  tendencia: "&6[Mercado] &f{color}{pez} &6está en tendencia: &a+{bono}% &6durante {minutos} min."
+  torneo-inicio: "&b&l¡Torneo de pesca! &7Dura &f{minutos} min&7. Gana quien pesque más kilos en total."
+  torneo-fin: "&b&lTorneo terminado."
+  torneo-ya: "&cYa hay un torneo en curso."
+  torneo-no: "&cNo hay ningún torneo en curso."
   sin-permiso: "&cNo tienes permiso."
   solo-jugadores: "&cSolo jugadores."
   recargado: "&aConfiguración recargada."
   heladera-dada: "&aHeladera entregada a &f{jugador}&a."
+  item-dado: "&aEntregado &f{item} &aa &f{jugador}&a."
   jugador-no-encontrado: "&cJugador no encontrado."
+  uso-dar: "&cUso: /pesca dar <jugador> <cana|carnada> <id> [cantidad]"

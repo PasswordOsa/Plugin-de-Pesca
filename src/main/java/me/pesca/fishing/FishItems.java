@@ -23,7 +23,7 @@ public final class FishItems {
 
     public record Info(FishType type, double weight, State state) {}
 
-    public final NamespacedKey kId, kWeight, kExpires, kFrozen, kSig, kCatcher, kFridge;
+    public final NamespacedKey kId, kWeight, kExpires, kFrozen, kSig, kCatcher, kFridge, kPerfect;
     private final FishRegistry registry;
     private final PescaPlugin plugin;
     private double warnFraction = 0.25;
@@ -38,6 +38,7 @@ public final class FishItems {
         kSig = new NamespacedKey(plugin, "fish_sig");
         kCatcher = new NamespacedKey(plugin, "fish_catcher");
         kFridge = new NamespacedKey(plugin, "fridge");
+        kPerfect = new NamespacedKey(plugin, "fish_perfect");
     }
 
     public void reload(FileConfiguration cfg) {
@@ -46,7 +47,7 @@ public final class FishItems {
 
     // ---------------------------------------------------------------- crear
 
-    public ItemStack create(FishType t, double weight, String catcher) {
+    public ItemStack create(FishType t, double weight, String catcher, boolean perfect) {
         ItemStack item = new ItemStack(t.material());
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
@@ -55,6 +56,7 @@ public final class FishItems {
         pdc.set(kWeight, PersistentDataType.DOUBLE, weight);
         pdc.set(kExpires, PersistentDataType.LONG, now + t.shelfLifeMs());
         pdc.set(kCatcher, PersistentDataType.STRING, catcher);
+        if (perfect) pdc.set(kPerfect, PersistentDataType.BYTE, (byte) 1);
         apply(item, meta, pdc, t, now);
         return item;
     }
@@ -193,6 +195,7 @@ public final class FishItems {
                 lore.add(l("&7Ya no se puede vender."));
             }
         }
+        if (pdc.has(kPerfect, PersistentDataType.BYTE)) lore.add(l("&e★ Captura perfecta"));
         if (frozen && st != State.SPOILED) lore.add(l("&b❄ Conservado en heladera"));
         if (catcher != null) lore.add(l("&8Pescado por " + catcher));
         meta.setLore(lore);

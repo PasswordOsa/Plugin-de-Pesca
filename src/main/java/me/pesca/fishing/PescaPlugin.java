@@ -14,32 +14,49 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.StringJoiner;
+import java.util.UUID;
 
 public final class PescaPlugin extends JavaPlugin {
     private FishRegistry registry;
     private FishItems items;
+    private RodItems rods;
     private DataManager data;
-    private SellService sales;
+    private Market market;
+    private ServerRecords records;
+    private QuestManager quests;
+    private Tournament tournament;
+    private FishingListener fishing;
     private EconomyBridge economy = new InternalEco();
     private final Map<String, String> messages = new HashMap<>();
-    private final Set<UUID> guiViewers = new HashSet<>();
+    private final Map<UUID, Menu> menus = new HashMap<>();
     private long[] xpCurve = new long[0];
     private int maxLevel = 50;
     private double sellBonusPerLevel;
     private double vanillaLootChance;
-    private BukkitTask refreshTask, autosaveTask;
+    private BukkitTask refreshTask, autosaveTask, marketTask;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         registry = new FishRegistry();
         items = new FishItems(this, registry);
+        rods = new RodItems(this);
         data = new DataManager(this);
-        sales = new SellService(this);
+        market = new Market(this);
+        records = new ServerRecords();
+        quests = new QuestManager(this);
+        tournament = new Tournament(this);
+        fishing = new FishingListener(this);
         loadSettings();
 
+        market.load(data.loadFile("mercado.yml"));
+        records.load(data.loadFile("records.yml"));
+
         getServer().getPluginManager().registerEvents(new PescaListener(this), this);
+        getServer().getPluginManager().registerEvents(fishing, this);
         PluginCommand cmd = getCommand("pesca");
         if (cmd != null) {
             PescaCommand pc = new PescaCommand(this);
@@ -59,7 +76,13 @@ public final class PescaPlugin extends JavaPlugin {
     public void onDisable() {
         if (refreshTask != null) refreshTask.cancel();
         if (autosaveTask != null) autosaveTask.cancel();
-        if (data != null) data.shutdown();
+        if (marketTask != null) marketTask.cancel();
+        if (tournament != null) tournament.shutdown();
+        if (fishing != null) fishing.shutdown();
+        if (data != null) {
+            saveServerData();
+            data.shutdown();
+        }
     }
 
     // ------------------------------------------------------------ configuracion
@@ -68,6 +91,10 @@ public final class PescaPlugin extends JavaPlugin {
         reloadConfig();
         registry.load(getConfig(), getLogger());
         items.reload(getConfig());
+        rods.load(getConfig());
+        market.reload(getConfig());
+        quests.load(getConfig());
+        fishing.reload();
 
         messages.clear();
         ConfigurationSection ms = getConfig().getConfigurationSection("mensajes");
@@ -90,12 +117,23 @@ public final class PescaPlugin extends JavaPlugin {
     private void scheduleTasks() {
         if (refreshTask != null) refreshTask.cancel();
         if (autosaveTask != null) autosaveTask.cancel();
+        if (marketTask != null) marketTask.cancel();
         long period = Math.max(5L, getConfig().getLong("frescura.refresco-segundos", 30)) * 20L;
         refreshTask = getServer().getScheduler().runTaskTimer(this, () -> {
             for (Player p : getServer().getOnlinePlayers()) refreshInventory(p);
         }, period, period);
         long save = Math.max(1L, getConfig().getLong("autoguardado-minutos", 5)) * 1200L;
-        autosaveTask = getServer().getScheduler().runTaskTimer(this, data::autosave, save, save);
+        autosaveTask = getServer().getScheduler().runTaskTimer(this, () -> {
+            data.autosave();
+            saveServerData();
+        }, save, save);
+        marketTask = getServer().getScheduler().runTaskTimer(this, market::tick, 100L, 1200L);
+        tournament.schedule();
+    }
+
+    private void saveServerData() {
+        if (market.dirty()) data.saveFileAsync("mercado.yml", market.toYaml());
+        if (records.dirty()) data.saveFileAsync("records.yml", records.toYaml());
     }
 
     private void setupEconomy() {
@@ -171,6 +209,11 @@ public final class PescaPlugin extends JavaPlugin {
         return ChatColor.translateAlternateColorCodes('&', s);
     }
 
+    /** Mensaje sin prefijo ni color aplicado (para insertarlo dentro de otro). */
+    public String raw(String key) {
+        return messages.getOrDefault(key, "");
+    }
+
     public String msg(String key, Object... kv) {
         String m = messages.getOrDefault(key, key);
         for (int i = 0; i + 1 < kv.length; i += 2) m = m.replace("{" + kv[i] + "}", String.valueOf(kv[i + 1]));
@@ -185,10 +228,15 @@ public final class PescaPlugin extends JavaPlugin {
 
     public FishRegistry registry() { return registry; }
     public FishItems items() { return items; }
+    public RodItems rods() { return rods; }
     public DataManager data() { return data; }
-    public SellService sales() { return sales; }
+    public Market market() { return market; }
+    public ServerRecords records() { return records; }
+    public QuestManager quests() { return quests; }
+    public Tournament tournament() { return tournament; }
+    public FishingListener fishing() { return fishing; }
     public EconomyBridge economy() { return economy; }
-    public Set<UUID> guiViewers() { return guiViewers; }
+    public Map<UUID, Menu> menus() { return menus; }
     public int maxLevel() { return maxLevel; }
     public double sellBonusPerLevel() { return sellBonusPerLevel; }
     public double vanillaLootChance() { return vanillaLootChance; }

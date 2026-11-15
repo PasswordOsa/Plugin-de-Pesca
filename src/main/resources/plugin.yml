@@ -1,18 +1,18 @@
 name: PescaPlus
-version: 1.0.0
+version: 2.0.0
 main: me.pesca.fishing.PescaPlugin
 api-version: '1.21'
-description: Pesca con colección, niveles, venta y peces que se dañan sin heladera.
+description: Simulador de pesca - minijuego, zonas, clima, mercado, misiones y torneos.
 softdepend: [Vault]
 commands:
   pesca:
-    description: Comandos de pesca
+    description: Menú y comandos de pesca
     aliases: [pescar, fishing]
-    usage: /pesca <info|coleccion|vender|limpiar>
+    usage: /pesca
 permissions:
   pesca.use:
     description: Permite pescar y usar los comandos
     default: true
   pesca.admin:
-    description: Recargar, dar heladeras
+    description: Recargar, torneos, dar items
     default: op

@@ -54,6 +54,21 @@ public final class DataManager {
         return PlayerData.fromYaml(id, YamlConfiguration.loadConfiguration(f));
     }
 
+    /** Archivos globales del servidor (mercado, records). Se leen una sola vez al iniciar. */
+    public YamlConfiguration loadFile(String name) {
+        File f = new File(plugin.getDataFolder(), name);
+        return f.exists() ? YamlConfiguration.loadConfiguration(f) : new YamlConfiguration();
+    }
+
+    public void saveFileAsync(String name, String yaml) {
+        File f = new File(plugin.getDataFolder(), name);
+        try {
+            io.execute(() -> write(f, yaml));
+        } catch (RuntimeException ex) {
+            write(f, yaml);
+        }
+    }
+
     public void unload(UUID id) {
         PlayerData d = cache.remove(id);
         if (d != null && d.dirty) saveAsync(d);
